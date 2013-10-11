@@ -14,12 +14,12 @@ const int min8Pin = 12;
 int seconds = 0;
 int minutes = 0;
 int hours = 0;
-int activated = HIGH;         
+int activated = 1;         
 int buttonState;             
 int lastButtonState = LOW;
 
 long lastDebounceTime = 0;
-long debounceDelay = 200;
+long debounceDelay = 100;
 
 void (* funcs[])() = {OnEachSecond, CheckForButton};
 long lastExecuted[] = {0, 0};
@@ -43,25 +43,19 @@ void loop() {
   DebounceRead(btnPin, &lastButtonState, &buttonState);
   
   ExecuteEvery(3,1);
-
-  if (activated == HIGH){
+  Serial.print("execute: ");
+  if (activated){
+    Serial.println(activated);
     ExecuteEvery(10,0);
   }
 }
 
 void CheckForButton()
 {
-  Serial.print("ButtonState: ");
-  Serial.println(buttonState);
   if (buttonState) {
-    if (activated)
-    {
-      activated = HIGH;
-    }else
-    {
-      activated = LOW;
-    }
+    activated = !activated;
   }
+  Serial.println(activated);
 }
 
 void OnEachSecond()
@@ -125,8 +119,8 @@ void DebounceRead(int btn, int *lastState, int *destination)
 void ExecuteEvery(int secondsDecimal, int funcNumber)
 {
   long secsDec = millis()/100;
-  long lastSec = lastExecuted[funcNumber];
-  if ((lastSec + secondsDecimal) == secsDec)
+  long lastExec = lastExecuted[funcNumber];
+  if ((lastExec + secondsDecimal) <= secsDec)
   {
     funcs[funcNumber]();
     lastExecuted[funcNumber] = secsDec;
